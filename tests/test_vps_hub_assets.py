@@ -49,6 +49,7 @@ def test_env_example_has_required_keys_without_real_secrets() -> None:
         "OPENAI_TARGET_API_URL=https://your-9router.example.com/v1",
         "OPENAI_API_KEY=replace-with-9router-key",
         "HEADROOM_REQUIRE_RUST_CORE=true",
+        "HEADROOM_TELEMETRY=off",
     ]
     for item in required:
         assert item in env
