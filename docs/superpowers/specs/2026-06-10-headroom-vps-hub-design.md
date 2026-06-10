@@ -196,6 +196,16 @@ Initial policy:
 8. Add memory DB and MCP/local shim after proxy is stable.
 9. Consider Qdrant/Neo4j only if SQLite/local memory becomes limiting.
 
+## Implementation Assets
+
+The first implementation pass creates deployment assets under `docker/vps-hub/`, an isolated overlay inside the existing `docker/` folder:
+
+- `docker-compose.yml` for Dokploy/manual Compose deployment;
+- `.env.example` for safe environment configuration;
+- `README.md` for GitHub-to-Dokploy rollout, security, backup, and rollback instructions;
+- `scripts/smoke-test.py` for `/readyz` and OpenAI-compatible completion checks;
+- `scripts/backup.sh` and `scripts/restore.sh` for local state protection.
+
 ## Acceptance Criteria
 
 Phase 1 is complete when:
