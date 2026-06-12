@@ -7,6 +7,11 @@ services:
       - "${HEADROOM_HOST:-0.0.0.0}"
       - "--port"
       - "${HEADROOM_PORT:-8787}"
+      - "--memory"
+      - "--memory-storage"
+      - "global"
+      - "--memory-db-path"
+      - "/data/headroom/memory.db"
     environment:
       - HEADROOM_HOST=${HEADROOM_HOST:-0.0.0.0}
       - HEADROOM_PORT=${HEADROOM_PORT:-8787}

@@ -150,14 +150,69 @@ chat completion ok
 
 ## Client configuration
 
-OpenAI-compatible clients:
+### 1. Zero-Config Proxy (Recommended)
+
+Route your agent's LLM API traffic directly through the Headroom VPS Proxy. The proxy automatically injects relevant memories from the shared store and provides the necessary memory tools (`memory_save`, `memory_search`) without needing any local MCP configuration.
+
+Configure your agent (Aider, Claude Code, etc.) with the following environment variables:
 
 ```env
 OPENAI_BASE_URL=https://headroom.<domain>/v1
-OPENAI_API_KEY=<key-accepted-by-headroom-or-9router>
+OPENAI_API_KEY=<your-9router-or-upstream-key>
 ```
 
-Route one low-risk client first. Verify normal completions, streaming, and stats before migrating more agents.
+For Anthropic/Claude Code:
+
+```env
+ANTHROPIC_BASE_URL=https://headroom.<domain>
+ANTHROPIC_API_KEY=<your-anthropic-key>
+```
+
+### 2. Local MCP Bridge (For Cursor / Windsurf)
+
+If you prefer to call upstream LLMs directly but want to use Headroom's memory and compression tools via the MCP panel (e.g. in Cursor), configure a local stdio shim that routes to your remote VPS.
+
+Add this to your Cursor MCP settings or `~/.claude/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "headroom-ccr": {
+      "command": "python",
+      "args": [
+        "-m",
+        "headroom.ccr.mcp_server"
+      ],
+      "env": {
+        "HEADROOM_PROXY_URL": "https://headroom.<domain>"
+      }
+    },
+    "headroom-memory": {
+      "command": "python",
+      "args": [
+        "-m",
+        "headroom.memory.mcp_server",
+        "--db",
+        "/data/headroom/memory.db"
+      ],
+      "env": {
+        "HEADROOM_PROXY_URL": "https://headroom.<domain>"
+      }
+    }
+  }
+}
+```
+
+*Note: Ensure the `headroom` CLI or python module is installed on your local machine (`pip install "headroom-ai[mcp]"`).*
+
+## Shared Memory Configuration
+
+The VPS proxy is configured with:
+- `--memory`: Enables persistent memory.
+- `--memory-storage global`: Shares a single memory database (`memory.db`) across all sessions and agents.
+- `--memory-db-path /data/headroom/memory.db`: Persists the DB inside the Docker volume.
+
+All agents routing through the proxy will write to and read from this centralized memory store, achieving cross-agent state persistence.
 
 ## Security checklist
 
@@ -199,18 +254,3 @@ Restart the service after restore and check `/readyz`.
 1. In Dokploy, redeploy the previous image tag or compose revision.
 2. If state corruption is suspected, stop the container and restore the latest backup.
 3. If 9Router routing fails, point affected clients back to their original provider URL until the proxy is healthy.
-
-## Shared memory phase
-
-The first deployment only prepares persistent state. Add shared memory after proxy stability is proven.
-
-Planned memory flow:
-
-```text
-Agent MCP client
-  -> local stdio shim when required
-  -> VPS memory endpoint or service
-  -> /data/headroom/memory.db
-```
-
-Use this only after the proxy path is stable for several real sessions.
