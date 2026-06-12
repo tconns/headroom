@@ -100,6 +100,8 @@ In Dokploy, confirm the service keeps named volumes across redeploys. Do not use
 4. Enable HTTPS through Dokploy if available.
 5. Keep Cloudflare SSL mode as **Full** or **Full (strict)**.
 
+*Note: Headroom compression of large payloads (>1.5MB) may take 15-30s on a 2-core VPS. The compose file includes Traefik labels to prevent premature timeouts.*
+
 ### 7. Deploy
 
 1. Click **Deploy**.

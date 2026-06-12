@@ -27,6 +27,13 @@ services:
       - "${HEADROOM_PORT:-8787}:8787"
     volumes:
       - headroom_data:/data/headroom
+    labels:
+      - "traefik.http.middlewares.headroom-timeout.buffering.maxRequestBodyBytes=10485760"
+      - "traefik.http.middlewares.headroom-timeout.buffering.memRequestBodyBytes=10485760"
+      - "traefik.http.middlewares.headroom-timeout.buffering.retryExpression=IsNetworkError() && Attempts() < 2"
+      - "traefik.http.routers.headroom-proxy.middlewares=headroom-timeout"
+      - "traefik.http.services.headroom-proxy.loadbalancer.server.port=8787"
+      - "traefik.http.middlewares.headroom-retry.retry.attempts=3"
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8787/readyz"]
       interval: 30s
